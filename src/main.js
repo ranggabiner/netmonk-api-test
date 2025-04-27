@@ -108,11 +108,11 @@ ipcMain.on("download-data", async (event, { reportName }) => {
 
     echo "Downloading Postman Collection..."
     curl --silent --location --request GET "https://api.getpostman.com/collections/${COLLECTION_ID}" --header "X-Api-Key: ${API_KEY}" -o "${collectionPath}"
-    echo "Collection downloaded ✅"
+    echo "Collection downloaded"
 
     echo "Downloading Postman Environment..."
     curl --silent --location --request GET "https://api.getpostman.com/environments/${ENVIRONMENT_ID}" --header "X-Api-Key: ${API_KEY}" -o "${environmentPath}"
-    echo "Environment downloaded ✅"
+    echo "Environment downloaded"
   `;
 
   const runNewmanScript = `
@@ -122,9 +122,9 @@ ipcMain.on("download-data", async (event, { reportName }) => {
     export PATH=$PATH:/usr/local/bin:/opt/homebrew/bin
     cd "${targetDir}"
 
-    echo "Running Newman 🚀..."
+    echo "Running Newman..."
     newman run collection.json -e environment.json -r htmlextra --reporter-htmlextra-title "${reportName} Netmonk" --reporter-htmlextra-export ./newman/${reportFileName}
-    echo "Newman run complete 🎉"
+    echo "Newman run complete"
   `;
 
   const downloadScriptPath = path.join(
@@ -142,9 +142,8 @@ ipcMain.on("download-data", async (event, { reportName }) => {
     return;
   }
 
-  // Step 1: Download collection & environment
   exec(`bash "${downloadScriptPath}"`, (downloadErr, stdout, stderr) => {
-    fs.unlink(downloadScriptPath, () => {}); // Bersihin file temp abis dipake
+    fs.unlink(downloadScriptPath, () => {});
 
     if (downloadErr) {
       console.error(`Download error: ${stderr}`);
@@ -154,11 +153,10 @@ ipcMain.on("download-data", async (event, { reportName }) => {
 
     console.log(`Download success: ${stdout}`);
 
-    // Step 2: Baru jalanin Newman
     exec(
       `bash "${newmanScriptPath}"`,
       (newmanErr, newmanStdout, newmanStderr) => {
-        fs.unlink(newmanScriptPath, () => {}); // Bersihin file temp lagi
+        fs.unlink(newmanScriptPath, () => {});
 
         if (newmanErr) {
           console.error(`Newman error: ${newmanStderr}`);
@@ -168,7 +166,7 @@ ipcMain.on("download-data", async (event, { reportName }) => {
 
         console.log(`Newman success: ${newmanStdout}`);
 
-        const message = "Download & Testing sukses bro! 🔥";
+        const message = "Download & Testing sukses guys!";
         const folderPath = path.join(targetDir, "newman");
         event.reply("download-complete", { message, folderPath });
       }

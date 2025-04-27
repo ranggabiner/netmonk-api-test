@@ -104,8 +104,8 @@ downloadBtn.addEventListener("click", () => {
     console.log("Download error event received:", errorMessage);
     loader.style.display = "none";
     downloadBtn.disabled = false;
-    downloadBtn.innerText = "Download Collection & Environment";
-    downloadBtn.style.backgroundColor = "#4caf50";
+    downloadBtn.innerText = "START";
+    downloadBtn.style.backgroundColor = "#ef5b25";
 
     document.querySelectorAll('input[name="reportName"]').forEach((radio) => {
       radio.disabled = false;
