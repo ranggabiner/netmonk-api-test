@@ -5,16 +5,14 @@ const downloadBtn = document.getElementById("download-btn");
 const loader = document.getElementById("loader");
 
 downloadBtn.addEventListener("click", () => {
-  // Ambil nilai dari radio button yang dipilih
   const reportName = document.querySelector(
     'input[name="reportName"]:checked'
   ).value;
 
-  // TAMPILIN loader + disable tombol + ganti warna jadi abu-abu
   loader.style.display = "block";
   downloadBtn.disabled = true;
   downloadBtn.innerText = "Downloading...";
-  downloadBtn.style.backgroundColor = "#a9a9a9"; // Set jadi abu-abu
+  downloadBtn.style.backgroundColor = "#a9a9a9";
 
   ipcRenderer.send("download-data", { reportName });
 
@@ -23,17 +21,15 @@ downloadBtn.addEventListener("click", () => {
 
   ipcRenderer.on("download-complete", (event, { message, folderPath }) => {
     console.log("Download complete event received");
-    // HIDE loader + ENABLE tombol + Balikin warna normal
     loader.style.display = "none";
     downloadBtn.disabled = false;
     downloadBtn.innerText = "Download Collection & Environment";
-    downloadBtn.style.backgroundColor = "#4caf50"; // Balikin ke hijau
+    downloadBtn.style.backgroundColor = "#4caf50";
 
     const fs = require("fs");
 
     let reportPath = null;
     try {
-      // Periksa dulu apakah folder newman ada
       if (!fs.existsSync(folderPath)) {
         console.error("Folder tidak ditemukan:", folderPath);
         throw new Error("Folder newman tidak ditemukan");
@@ -43,14 +39,13 @@ downloadBtn.addEventListener("click", () => {
       const htmlFiles = files.filter((file) => file.endsWith(".html"));
 
       if (htmlFiles.length > 0) {
-        // Cari file HTML terbaru berdasarkan modified time
         let latestFile = htmlFiles
           .map((file) => {
             const filePath = path.join(folderPath, file);
             const stats = fs.statSync(filePath);
             return { file: filePath, mtime: stats.mtime };
           })
-          .sort((a, b) => b.mtime - a.mtime)[0]; // Sort descending
+          .sort((a, b) => b.mtime - a.mtime)[0];
 
         reportPath = latestFile.file;
         console.log("Report path found:", reportPath);

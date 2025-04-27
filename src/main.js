@@ -8,8 +8,22 @@ const fs = require("fs");
 const { shell } = require("electron");
 
 const API_KEY = process.env.POSTMAN_API_KEY;
-const COLLECTION_ID = process.env.COLLECTION_ID;
-const ENVIRONMENT_ID = process.env.ENVIRONMENT_ID;
+
+// Define the mapping of report names to their corresponding Collection and Environment IDs
+const reportConfigs = {
+  HI: {
+    COLLECTION_ID: process.env.HI_COLLECTION_ID,
+    ENVIRONMENT_ID: process.env.HI_ENVIRONMENT_ID,
+  },
+  Prime: {
+    COLLECTION_ID: process.env.PRIME_COLLECTION_ID,
+    ENVIRONMENT_ID: process.env.PRIME_ENVIRONMENT_ID,
+  },
+  Portal: {
+    COLLECTION_ID: process.env.PORTAL_COLLECTION_ID,
+    ENVIRONMENT_ID: process.env.PORTAL_ENVIRONMENT_ID,
+  },
+};
 
 function createWindow() {
   const win = new BrowserWindow({
@@ -43,6 +57,17 @@ app.on("window-all-closed", () => {
 });
 
 ipcMain.on("download-data", (event, { reportName }) => {
+  // Use the corresponding Collection and Environment ID based on the report name
+  const { COLLECTION_ID, ENVIRONMENT_ID } = reportConfigs[reportName] || {};
+
+  if (!COLLECTION_ID || !ENVIRONMENT_ID) {
+    event.reply(
+      "download-error",
+      `Invalid report name: ${reportName}, cannot find corresponding IDs.`
+    );
+    return;
+  }
+
   const targetDir = path.join(
     process.env.HOME || process.env.USERPROFILE,
     "Documents",
@@ -64,7 +89,6 @@ ipcMain.on("download-data", (event, { reportName }) => {
     return;
   }
 
-  // Get current date and time in WIB format
   const now = new Date();
 
   const timeString = now
@@ -77,10 +101,9 @@ ipcMain.on("download-data", (event, { reportName }) => {
       minute: "2-digit",
       second: "2-digit",
     })
-    .replace(/\//g, "-") // Ganti garis miring jadi dash
-    .replace(/ /, "_") // Ganti spasi jadi underscore
-    .replace(/,/g, "") // Menghapus koma setelah tanggal
-    .replace(/:/g, "-"); // Ganti titik dua jadi dash
+    .replace(/\//g, "-")
+    .replace(/ /, "_")
+    .replace(/,/g, "");
 
   const reportFileName = `${reportName}_Report_${timeString}.html`;
 
@@ -105,7 +128,7 @@ ipcMain.on("download-data", (event, { reportName }) => {
 
       cd "${targetDir}" || exit 1
       echo "Running newman..."
-      newman run collection.json -e environment.json -r htmlextra --reporter-htmlextra-title "HI Netmonk" --reporter-htmlextra-export ./newman/${reportFileName} || exit 1
+      newman run collection.json -e environment.json -r htmlextra --reporter-htmlextra-title "${reportName} Netmonk" --reporter-htmlextra-export ./newman/${reportFileName} || exit 1
     `;
 
   const scriptPath = path.join(__dirname, "temp_script.sh");
