@@ -42,7 +42,7 @@ app.on("window-all-closed", () => {
   }
 });
 
-ipcMain.on("download-data", (event) => {
+ipcMain.on("download-data", (event, { reportName }) => {
   const targetDir = path.join(
     process.env.HOME || process.env.USERPROFILE,
     "Documents",
@@ -63,6 +63,26 @@ ipcMain.on("download-data", (event) => {
     );
     return;
   }
+
+  // Get current date and time in WIB format
+  const now = new Date();
+
+  const timeString = now
+    .toLocaleString("id-ID", {
+      timeZone: "Asia/Jakarta",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    })
+    .replace(/\//g, "-") // Ganti garis miring jadi dash
+    .replace(/ /, "_") // Ganti spasi jadi underscore
+    .replace(/,/g, "") // Menghapus koma setelah tanggal
+    .replace(/:/g, "-"); // Ganti titik dua jadi dash
+
+  const reportFileName = `${reportName}_Report_${timeString}.html`;
 
   const script = `
       #!/bin/bash
@@ -85,7 +105,7 @@ ipcMain.on("download-data", (event) => {
 
       cd "${targetDir}" || exit 1
       echo "Running newman..."
-      newman run collection.json -e environment.json -r htmlextra || exit 1
+      newman run collection.json -e environment.json -r htmlextra --reporter-htmlextra-title "HI Netmonk" --reporter-htmlextra-export ./newman/${reportFileName} || exit 1
     `;
 
   const scriptPath = path.join(__dirname, "temp_script.sh");
@@ -119,7 +139,7 @@ ipcMain.on("download-data", (event) => {
 
 ipcMain.on(
   "show-dialog",
-  (event, { type, title, message, buttons, folderPath }) => {
+  (event, { type, title, message, buttons, folderPath, reportPath }) => {
     const dialogOptions = {
       type: type || "info",
       title: title || "Informasi",
@@ -128,8 +148,13 @@ ipcMain.on(
     };
 
     dialog.showMessageBox(null, dialogOptions).then((result) => {
-      if (result.response === 1 && folderPath) {
-        shell.openPath(folderPath);
+      if (buttons && result.response === buttons.indexOf("Buka Report")) {
+        if (reportPath) {
+          shell.openPath(folderPath);
+          shell.openPath(reportPath);
+        } else {
+          dialog.showErrorBox("Error", "Report tidak ditemukan.");
+        }
       }
     });
   }

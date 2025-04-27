@@ -43,8 +43,21 @@
   <body>
     <div class="container">
       <h1>Postman Exporter</h1>
+      <div>
+        <label>
+          <input type="radio" name="reportName" value="HI" checked /> HI
+        </label>
+        <label>
+          <input type="radio" name="reportName" value="Prime" /> Prime
+        </label>
+        <label>
+          <input type="radio" name="reportName" value="Portal" /> Portal
+        </label>
+      </div>
       <button id="download-btn">Download Collection & Environment</button>
+      <div id="loader" style="display: none; margin-top: 20px"></div>
     </div>
+
     <script src="renderer.js"></script>
   </body>
 </html>
