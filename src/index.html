@@ -3,59 +3,133 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Postman Exporter</title>
+    <title>API Netmonk</title>
     <style>
       body {
+        margin: 0;
+        padding: 0;
         font-family: Arial, sans-serif;
         display: flex;
         justify-content: center;
         align-items: center;
         height: 100vh;
-        background-color: #f0f0f0;
+        background-color: #ffffff;
       }
       .container {
         text-align: center;
-        padding: 30px;
-        background: #fff;
-        border-radius: 10px;
-        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-        width: 300px;
       }
-      h1 {
-        font-size: 24px;
-        margin-bottom: 20px;
+      .logo-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        margin-bottom: 40px;
       }
-      button {
-        padding: 10px 20px;
-        font-size: 16px;
+      .logo-img {
+        height: 28px;
+      }
+      .logo-text {
+        font-size: 32px;
+        font-weight: bold;
+        color: #184882;
+      }
+      .radio-group {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 50px;
+        margin-bottom: 40px;
+      }
+      .radio-option {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      input[type="radio"] {
+        appearance: none;
+        border: 2px solid #ef5b25;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        margin-bottom: 8px;
+        outline: none;
         cursor: pointer;
-        background-color: #4caf50;
-        color: white;
-        border: none;
-        border-radius: 5px;
-        transition: background-color 0.3s;
+        transition: background 0.2s;
       }
-      button:hover {
-        background-color: #45a049;
+      input[type="radio"]:disabled {
+        cursor: not-allowed;
+        border: 2px solid #a9a9a9;
+      }
+      input[type="radio"]:checked {
+        background-color: #ef5b25;
+      }
+      .label-text {
+        font-weight: bold;
+        color: #1f4276;
+        font-size: 20px;
+      }
+      .start-button {
+        background-color: #ef5b25;
+        color: #fff;
+        border: none;
+        padding: 15px 40px;
+        font-size: 24px;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: background 0.3s;
+      }
+      .start-button:hover {
+        background-color: #ef5b25;
+      }
+      .start-button:disabled {
+        cursor: not-allowed;
+      }
+      input[type="checkbox"] {
+        cursor: pointer;
       }
     </style>
   </head>
+
   <body>
     <div class="container">
-      <h1>Postman Exporter</h1>
-      <div>
-        <label>
-          <input type="radio" name="reportName" value="HI" checked /> HI
+      <div class="logo-container">
+        <div class="logo-text">API</div>
+        <img
+          src="assets/netmonk_logo_name.png"
+          alt="Netmonk Logo"
+          class="logo-img"
+        />
+      </div>
+
+      <div class="radio-group">
+        <label class="radio-option">
+          <input type="radio" name="reportName" value="Prime" checked />
+          <span class="label-text">Prime</span>
         </label>
-        <label>
-          <input type="radio" name="reportName" value="Prime" /> Prime
+        <label class="radio-option">
+          <input type="radio" name="reportName" value="HI" />
+          <span class="label-text">HI</span>
         </label>
-        <label>
-          <input type="radio" name="reportName" value="Portal" /> Portal
+        <label class="radio-option">
+          <input type="radio" name="reportName" value="Portal" />
+          <span class="label-text">Portal</span>
         </label>
       </div>
-      <button id="download-btn">Download Collection & Environment</button>
+
+      <div
+        id="vpn-checkbox-container"
+        style="display: none; margin-bottom: 20px"
+      >
+        <label style="font-size: 18px; color: #1f4276">
+          <input type="checkbox" id="vpn-checkbox" style="margin-right: 8px" />
+          sudah menyalakan VPN
+        </label>
+      </div>
+
+      <button class="start-button" id="download-btn">START</button>
+      <!-- Loader tetap ada -->
       <div id="loader" style="display: none; margin-top: 20px"></div>
+      <!-- Tambahin ini di bawah radio-group -->
     </div>
 
     <script src="renderer.js"></script>

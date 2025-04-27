@@ -9,7 +9,6 @@ const { shell } = require("electron");
 
 const API_KEY = process.env.POSTMAN_API_KEY;
 
-// Define the mapping of report names to their corresponding Collection and Environment IDs
 const reportConfigs = {
   HI: {
     COLLECTION_ID: process.env.HI_COLLECTION_ID,
@@ -57,7 +56,6 @@ app.on("window-all-closed", () => {
 });
 
 ipcMain.on("download-data", (event, { reportName }) => {
-  // Use the corresponding Collection and Environment ID based on the report name
   const { COLLECTION_ID, ENVIRONMENT_ID } = reportConfigs[reportName] || {};
 
   if (!COLLECTION_ID || !ENVIRONMENT_ID) {

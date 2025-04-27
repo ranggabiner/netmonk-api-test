@@ -3,15 +3,45 @@ const path = require("path");
 
 const downloadBtn = document.getElementById("download-btn");
 const loader = document.getElementById("loader");
+const vpnCheckboxContainer = document.getElementById("vpn-checkbox-container");
+const vpnCheckbox = document.getElementById("vpn-checkbox");
+
+document.querySelectorAll('input[name="reportName"]').forEach((radio) => {
+  radio.addEventListener("change", (e) => {
+    if (e.target.value === "HI") {
+      vpnCheckboxContainer.style.display = "block";
+      downloadBtn.disabled = true;
+      downloadBtn.style.backgroundColor = "#a9a9a9";
+    } else {
+      vpnCheckboxContainer.style.display = "none";
+      vpnCheckbox.checked = false;
+      downloadBtn.disabled = false;
+      downloadBtn.style.backgroundColor = "#ef5b25";
+    }
+  });
+});
+
+vpnCheckbox.addEventListener("change", () => {
+  if (vpnCheckbox.checked) {
+    downloadBtn.disabled = false;
+    downloadBtn.style.backgroundColor = "#ef5b25";
+  } else {
+    downloadBtn.disabled = true;
+    downloadBtn.style.backgroundColor = "#a9a9a9";
+  }
+});
 
 downloadBtn.addEventListener("click", () => {
   const reportName = document.querySelector(
     'input[name="reportName"]:checked'
   ).value;
 
-  loader.style.display = "block";
+  document.querySelectorAll('input[name="reportName"]').forEach((radio) => {
+    radio.disabled = true;
+  });
+
   downloadBtn.disabled = true;
-  downloadBtn.innerText = "Downloading...";
+  downloadBtn.innerText = "Loading...";
   downloadBtn.style.backgroundColor = "#a9a9a9";
 
   ipcRenderer.send("download-data", { reportName });
@@ -23,8 +53,12 @@ downloadBtn.addEventListener("click", () => {
     console.log("Download complete event received");
     loader.style.display = "none";
     downloadBtn.disabled = false;
-    downloadBtn.innerText = "Download Collection & Environment";
-    downloadBtn.style.backgroundColor = "#4caf50";
+    downloadBtn.innerText = "START";
+    downloadBtn.style.backgroundColor = "#ef5b25";
+
+    document.querySelectorAll('input[name="reportName"]').forEach((radio) => {
+      radio.disabled = false;
+    });
 
     const fs = require("fs");
 
@@ -68,11 +102,14 @@ downloadBtn.addEventListener("click", () => {
 
   ipcRenderer.on("download-error", (event, errorMessage) => {
     console.log("Download error event received:", errorMessage);
-    // HIDE loader + ENABLE tombol + Balikin warna normal
     loader.style.display = "none";
     downloadBtn.disabled = false;
     downloadBtn.innerText = "Download Collection & Environment";
-    downloadBtn.style.backgroundColor = "#4caf50"; // Balikin ke hijau
+    downloadBtn.style.backgroundColor = "#4caf50";
+
+    document.querySelectorAll('input[name="reportName"]').forEach((radio) => {
+      radio.disabled = false;
+    });
 
     ipcRenderer.send("show-dialog", {
       type: "error",
