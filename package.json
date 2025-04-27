@@ -1,12 +1,39 @@
 {
   "name": "postman-exporter-electron",
+  "productName": "Netmonk - API Test",
+  "author": "Rangga Biner",
   "version": "1.0.0",
   "description": "Postman Exporter with Electron",
   "main": "src/main.js",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "package": "electron-builder"
   },
   "devDependencies": {
-    "electron": "^latest_version"
+    "electron": "29.0.0",
+    "electron-builder": "23.6.0",
+    "newman-reporter-htmlextra": "^1.23.1"
+  },
+  "build": {
+    "appId": "com.RanggaBiner.APITest",
+    "files": [
+      "**/*",
+      ".env"
+    ],
+    "extraResources": [
+      {
+        "from": ".env",
+        "to": ".env"
+      }
+    ],
+    "mac": {
+      "identity": null
+    },
+    "icon": "src/assets/netmonk_api_test"
+  },
+  "dependencies": {
+    "@electron/rebuild": "^3.7.2",
+    "dotenv": "^16.5.0",
+    "newman": "^6.2.1"
   }
 }

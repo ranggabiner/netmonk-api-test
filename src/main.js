@@ -1,11 +1,19 @@
-require("dotenv").config();
+const path = require("path");
+const fs = require("fs");
+let envPath = path.join(__dirname, "..", ".env");
+if (process.resourcesPath) {
+  const packagedEnvPath = path.join(process.resourcesPath, ".env");
+  if (fs.existsSync(packagedEnvPath)) {
+    envPath = packagedEnvPath;
+  }
+}
+require("dotenv").config({ path: envPath });
 
 const { dialog } = require("electron");
 const { app, BrowserWindow, ipcMain } = require("electron");
-const path = require("path");
 const { exec } = require("child_process");
-const fs = require("fs");
 const { shell } = require("electron");
+const os = require("os");
 
 const API_KEY = process.env.POSTMAN_API_KEY;
 
@@ -66,11 +74,8 @@ ipcMain.on("download-data", (event, { reportName }) => {
     return;
   }
 
-  const targetDir = path.join(
-    process.env.HOME || process.env.USERPROFILE,
-    "Documents",
-    "postman_exports"
-  );
+  const targetDir = path.join(app.getPath("documents"), "postman_exports"); //TODO Gajelas di package
+
   const collectionPath = path.join(targetDir, "collection.json");
   const environmentPath = path.join(targetDir, "environment.json");
 
@@ -124,14 +129,18 @@ ipcMain.on("download-data", (event, { reportName }) => {
       # Pastikan newman ada dalam PATH atau gunakan path absolut
       export PATH=$PATH:/usr/local/bin
 
-      cd "${targetDir}" || exit 1
+      cd "${targetDir}" || exit 1 #TODO GAK KEBACA DI PACKAGE
       echo "Running newman..."
       newman run collection.json -e environment.json -r htmlextra --reporter-htmlextra-title "${reportName} Netmonk" --reporter-htmlextra-export ./newman/${reportFileName} || exit 1
     `;
 
-  const scriptPath = path.join(__dirname, "temp_script.sh");
+  const tempScriptPath = path.join(
+    os.tmpdir(),
+    `netmonk_script_${Date.now()}.sh`
+  );
+
   try {
-    fs.writeFileSync(scriptPath, script, { mode: 0o755 });
+    fs.writeFileSync(tempScriptPath, script, { mode: 0o755 });
   } catch (writeError) {
     console.error(`Error writing script file: ${writeError}`);
     event.reply(
@@ -141,8 +150,8 @@ ipcMain.on("download-data", (event, { reportName }) => {
     return;
   }
 
-  exec(`bash "${scriptPath}"`, (error, stdout, stderr) => {
-    fs.unlink(scriptPath, (unlinkErr) => {
+  exec(`bash "${tempScriptPath}"`, (error, stdout, stderr) => {
+    fs.unlink(tempScriptPath, (unlinkErr) => {
       if (unlinkErr) console.error(`Error deleting temp script: ${unlinkErr}`);
     });
 
