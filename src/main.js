@@ -63,19 +63,15 @@ app.on("window-all-closed", () => {
   }
 });
 
-ipcMain.on("download-data", (event, { reportName }) => {
+ipcMain.on("download-data", async (event, { reportName }) => {
   const { COLLECTION_ID, ENVIRONMENT_ID } = reportConfigs[reportName] || {};
 
   if (!COLLECTION_ID || !ENVIRONMENT_ID) {
-    event.reply(
-      "download-error",
-      `Invalid report name: ${reportName}, cannot find corresponding IDs.`
-    );
+    event.reply("download-error", `Invalid report name: ${reportName}`);
     return;
   }
 
-  const targetDir = path.join(app.getPath("documents"), "postman_exports"); //TODO Gajelas di package
-
+  const targetDir = path.join(app.getPath("documents"), "postman_exports");
   const collectionPath = path.join(targetDir, "collection.json");
   const environmentPath = path.join(targetDir, "environment.json");
 
@@ -83,17 +79,13 @@ ipcMain.on("download-data", (event, { reportName }) => {
     if (!fs.existsSync(targetDir)) {
       fs.mkdirSync(targetDir, { recursive: true });
     }
-  } catch (dirError) {
-    console.error(`Error creating directory: ${dirError}`);
-    event.reply(
-      "download-error",
-      `Gagal membuat direktori: ${dirError.message}`
-    );
+  } catch (err) {
+    console.error(`Error creating dir: ${err}`);
+    event.reply("download-error", `Gagal buat folder: ${err.message}`);
     return;
   }
 
   const now = new Date();
-
   const timeString = now
     .toLocaleString("id-ID", {
       timeZone: "Asia/Jakarta",
@@ -110,60 +102,77 @@ ipcMain.on("download-data", (event, { reportName }) => {
 
   const reportFileName = `${reportName}_Report_${timeString}.html`;
 
-  const script = `
-      #!/bin/bash
-      echo "Starting download..."
+  const downloadScript = `
+    #!/bin/bash
+    set -e
 
-      curl --silent --location --request GET "https://api.getpostman.com/collections/${COLLECTION_ID}" \
-      --header "X-Api-Key: ${API_KEY}" \
-      -o "${collectionPath}" || exit 1 # Keluar jika curl gagal
+    echo "Downloading Postman Collection..."
+    curl --silent --location --request GET "https://api.getpostman.com/collections/${COLLECTION_ID}" --header "X-Api-Key: ${API_KEY}" -o "${collectionPath}"
+    echo "Collection downloaded ✅"
 
-      echo "Downloaded collection.json"
+    echo "Downloading Postman Environment..."
+    curl --silent --location --request GET "https://api.getpostman.com/environments/${ENVIRONMENT_ID}" --header "X-Api-Key: ${API_KEY}" -o "${environmentPath}"
+    echo "Environment downloaded ✅"
+  `;
 
-      curl --silent --location --request GET "https://api.getpostman.com/environments/${ENVIRONMENT_ID}" \
-      --header "X-Api-Key: ${API_KEY}" \
-      -o "${environmentPath}" || exit 1 # Keluar jika curl gagal
+  const runNewmanScript = `
+    #!/bin/bash
+    set -e
 
-      echo "Downloaded environment.json"
+    export PATH=$PATH:/usr/local/bin:/opt/homebrew/bin
+    cd "${targetDir}"
 
-      # Pastikan newman ada dalam PATH atau gunakan path absolut
-      export PATH=$PATH:/usr/local/bin
+    echo "Running Newman 🚀..."
+    newman run collection.json -e environment.json -r htmlextra --reporter-htmlextra-title "${reportName} Netmonk" --reporter-htmlextra-export ./newman/${reportFileName}
+    echo "Newman run complete 🎉"
+  `;
 
-      cd "${targetDir}" || exit 1 #TODO GAK KEBACA DI PACKAGE
-      echo "Running newman..."
-      newman run collection.json -e environment.json -r htmlextra --reporter-htmlextra-title "${reportName} Netmonk" --reporter-htmlextra-export ./newman/${reportFileName} || exit 1
-    `;
-
-  const tempScriptPath = path.join(
+  const downloadScriptPath = path.join(
     os.tmpdir(),
-    `netmonk_script_${Date.now()}.sh`
+    `download_${Date.now()}.sh`
   );
+  const newmanScriptPath = path.join(os.tmpdir(), `newman_${Date.now()}.sh`);
 
   try {
-    fs.writeFileSync(tempScriptPath, script, { mode: 0o755 });
-  } catch (writeError) {
-    console.error(`Error writing script file: ${writeError}`);
-    event.reply(
-      "download-error",
-      `Gagal menulis script sementara: ${writeError.message}`
-    );
+    fs.writeFileSync(downloadScriptPath, downloadScript, { mode: 0o755 });
+    fs.writeFileSync(newmanScriptPath, runNewmanScript, { mode: 0o755 });
+  } catch (err) {
+    console.error(`Error writing temp scripts: ${err}`);
+    event.reply("download-error", `Gagal nulis script: ${err.message}`);
     return;
   }
 
-  exec(`bash "${tempScriptPath}"`, (error, stdout, stderr) => {
-    fs.unlink(tempScriptPath, (unlinkErr) => {
-      if (unlinkErr) console.error(`Error deleting temp script: ${unlinkErr}`);
-    });
+  // Step 1: Download collection & environment
+  exec(`bash "${downloadScriptPath}"`, (downloadErr, stdout, stderr) => {
+    fs.unlink(downloadScriptPath, () => {}); // Bersihin file temp abis dipake
 
-    if (stderr) {
-      console.error(`stderr: ${stderr}`);
+    if (downloadErr) {
+      console.error(`Download error: ${stderr}`);
+      event.reply("download-error", `Gagal download data: ${stderr}`);
+      return;
     }
-    console.log(`stdout: ${stdout}`);
 
-    const message = "Download dan test berhasil!";
-    const folderPath = path.join(targetDir, "newman");
+    console.log(`Download success: ${stdout}`);
 
-    event.reply("download-complete", { message, folderPath });
+    // Step 2: Baru jalanin Newman
+    exec(
+      `bash "${newmanScriptPath}"`,
+      (newmanErr, newmanStdout, newmanStderr) => {
+        fs.unlink(newmanScriptPath, () => {}); // Bersihin file temp lagi
+
+        if (newmanErr) {
+          console.error(`Newman error: ${newmanStderr}`);
+          event.reply("download-error", `Gagal run newman: ${newmanStderr}`);
+          return;
+        }
+
+        console.log(`Newman success: ${newmanStdout}`);
+
+        const message = "Download & Testing sukses bro! 🔥";
+        const folderPath = path.join(targetDir, "newman");
+        event.reply("download-complete", { message, folderPath });
+      }
+    );
   });
 });
 
