@@ -72,7 +72,7 @@ ipcMain.on("download-data", async (event, { reportName }) => {
     return;
   }
 
-  const targetDir = path.join(app.getPath("documents"), "postman_exports");
+  const targetDir = path.join(app.getPath("documents"), "postman_newman");
   const now = new Date();
   const timeString = now
     .toLocaleString("id-ID", {
@@ -95,7 +95,7 @@ ipcMain.on("download-data", async (event, { reportName }) => {
     set -e
 
     export PATH=$PATH:/usr/local/bin:/opt/homebrew/bin
-    mkdir -p "${targetDir}/newman"
+    mkdir -p "${targetDir}"
     cd "${targetDir}"
 
     echo "Running Newman langsung dari URL 📡..."
@@ -103,7 +103,7 @@ ipcMain.on("download-data", async (event, { reportName }) => {
       --environment "https://api.getpostman.com/environments/${ENVIRONMENT_ID}?apikey=${API_KEY}" \\
       -r htmlextra \\
       --reporter-htmlextra-title "${reportName} Netmonk" \\
-      --reporter-htmlextra-export "./newman/${reportFileName}"
+      --reporter-htmlextra-export "${reportFileName}"
     echo "Newman run complete 🎯"
   `;
 
@@ -123,7 +123,7 @@ ipcMain.on("download-data", async (event, { reportName }) => {
     console.log(`Newman success: ${stdout}`);
 
     const message = "Download & Testing sukses guys!";
-    const folderPath = path.join(targetDir, "newman");
+    const folderPath = path.join(targetDir);
     event.reply("download-complete", { message, folderPath });
   });
 });
