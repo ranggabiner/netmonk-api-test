@@ -34,8 +34,9 @@ const reportConfigs = {
 
 function createWindow() {
   const win = new BrowserWindow({
-    width: 512,
+    width: 720,
     height: 512,
+    resizable: false,
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
@@ -157,12 +158,6 @@ ipcMain.on("download-data", async (event, { reportName }) => {
       `bash "${newmanScriptPath}"`,
       (newmanErr, newmanStdout, newmanStderr) => {
         fs.unlink(newmanScriptPath, () => {});
-
-        if (newmanErr) {
-          console.error(`Newman error: ${newmanStderr}`);
-          event.reply("download-error", `Gagal run newman: ${newmanStderr}`);
-          return;
-        }
 
         console.log(`Newman success: ${newmanStdout}`);
 

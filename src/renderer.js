@@ -2,9 +2,32 @@ const { ipcRenderer } = require("electron");
 const path = require("path");
 
 const downloadBtn = document.getElementById("download-btn");
-const loader = document.getElementById("loader");
+const loaderLine = document.getElementById("loader-line");
 const vpnCheckboxContainer = document.getElementById("vpn-checkbox-container");
 const vpnCheckbox = document.getElementById("vpn-checkbox");
+
+function generateLoaderLines() {
+  const loaderLine = document.getElementById("loader-line");
+
+  loaderLine.innerHTML = "";
+
+  const spanWidth = 6 + 4;
+
+  const count = Math.floor(window.innerWidth / spanWidth);
+
+  for (let i = 0; i < count; i++) {
+    const span = document.createElement("span");
+
+    const randomDelay = (Math.random() * 0.5).toFixed(2);
+    span.style.animationDelay = `${randomDelay}s`;
+
+    loaderLine.appendChild(span);
+  }
+}
+
+window.addEventListener("DOMContentLoaded", generateLoaderLines);
+
+window.addEventListener("resize", generateLoaderLines);
 
 document.querySelectorAll('input[name="reportName"]').forEach((radio) => {
   radio.addEventListener("change", (e) => {
@@ -44,14 +67,15 @@ downloadBtn.addEventListener("click", () => {
   downloadBtn.innerText = "Loading...";
   downloadBtn.style.backgroundColor = "#a9a9a9";
 
+  loaderLine.style.display = "flex";
+
   ipcRenderer.send("download-data", { reportName });
 
   ipcRenderer.removeAllListeners("download-complete");
   ipcRenderer.removeAllListeners("download-error");
 
   ipcRenderer.on("download-complete", (event, { message, folderPath }) => {
-    console.log("Download complete event received");
-    loader.style.display = "none";
+    loaderLine.style.display = "none";
     downloadBtn.disabled = false;
     downloadBtn.innerText = "START";
     downloadBtn.style.backgroundColor = "#ef5b25";
@@ -101,8 +125,7 @@ downloadBtn.addEventListener("click", () => {
   });
 
   ipcRenderer.on("download-error", (event, errorMessage) => {
-    console.log("Download error event received:", errorMessage);
-    loader.style.display = "none";
+    loaderLine.style.display = "none";
     downloadBtn.disabled = false;
     downloadBtn.innerText = "START";
     downloadBtn.style.backgroundColor = "#ef5b25";
