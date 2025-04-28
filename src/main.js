@@ -73,19 +73,6 @@ ipcMain.on("download-data", async (event, { reportName }) => {
   }
 
   const targetDir = path.join(app.getPath("documents"), "postman_exports");
-  const collectionPath = path.join(targetDir, "collection.json");
-  const environmentPath = path.join(targetDir, "environment.json");
-
-  try {
-    if (!fs.existsSync(targetDir)) {
-      fs.mkdirSync(targetDir, { recursive: true });
-    }
-  } catch (err) {
-    console.error(`Error creating dir: ${err}`);
-    event.reply("download-error", `Gagal buat folder: ${err.message}`);
-    return;
-  }
-
   const now = new Date();
   const timeString = now
     .toLocaleString("id-ID", {
@@ -103,69 +90,41 @@ ipcMain.on("download-data", async (event, { reportName }) => {
 
   const reportFileName = `${reportName}_Report_${timeString}.html`;
 
-  const downloadScript = `
-    #!/bin/bash
-    set -e
-
-    echo "Downloading Postman Collection..."
-    curl --silent --location --request GET "https://api.getpostman.com/collections/${COLLECTION_ID}" --header "X-Api-Key: ${API_KEY}" -o "${collectionPath}"
-    echo "Collection downloaded"
-
-    echo "Downloading Postman Environment..."
-    curl --silent --location --request GET "https://api.getpostman.com/environments/${ENVIRONMENT_ID}" --header "X-Api-Key: ${API_KEY}" -o "${environmentPath}"
-    echo "Environment downloaded"
-  `;
-
   const runNewmanScript = `
     #!/bin/bash
     set -e
 
     export PATH=$PATH:/usr/local/bin:/opt/homebrew/bin
+    mkdir -p "${targetDir}/newman"
     cd "${targetDir}"
 
-    echo "Running Newman..."
-    newman run collection.json -e environment.json -r htmlextra --reporter-htmlextra-title "${reportName} Netmonk" --reporter-htmlextra-export ./newman/${reportFileName}
-    echo "Newman run complete"
+    echo "Running Newman langsung dari URL 📡..."
+    newman run "https://api.getpostman.com/collections/${COLLECTION_ID}?apikey=${API_KEY}" \\
+      --environment "https://api.getpostman.com/environments/${ENVIRONMENT_ID}?apikey=${API_KEY}" \\
+      -r htmlextra \\
+      --reporter-htmlextra-title "${reportName} Netmonk" \\
+      --reporter-htmlextra-export "./newman/${reportFileName}"
+    echo "Newman run complete 🎯"
   `;
 
-  const downloadScriptPath = path.join(
-    os.tmpdir(),
-    `download_${Date.now()}.sh`
-  );
   const newmanScriptPath = path.join(os.tmpdir(), `newman_${Date.now()}.sh`);
 
   try {
-    fs.writeFileSync(downloadScriptPath, downloadScript, { mode: 0o755 });
     fs.writeFileSync(newmanScriptPath, runNewmanScript, { mode: 0o755 });
   } catch (err) {
-    console.error(`Error writing temp scripts: ${err}`);
+    console.error(`Error writing temp script: ${err}`);
     event.reply("download-error", `Gagal nulis script: ${err.message}`);
     return;
   }
 
-  exec(`bash "${downloadScriptPath}"`, (downloadErr, stdout, stderr) => {
-    fs.unlink(downloadScriptPath, () => {});
+  exec(`bash "${newmanScriptPath}"`, (err, stdout, stderr) => {
+    fs.unlink(newmanScriptPath, () => {});
 
-    if (downloadErr) {
-      console.error(`Download error: ${stderr}`);
-      event.reply("download-error", `Gagal download data: ${stderr}`);
-      return;
-    }
+    console.log(`Newman success: ${stdout}`);
 
-    console.log(`Download success: ${stdout}`);
-
-    exec(
-      `bash "${newmanScriptPath}"`,
-      (newmanErr, newmanStdout, newmanStderr) => {
-        fs.unlink(newmanScriptPath, () => {});
-
-        console.log(`Newman success: ${newmanStdout}`);
-
-        const message = "Download & Testing sukses guys!";
-        const folderPath = path.join(targetDir, "newman");
-        event.reply("download-complete", { message, folderPath });
-      }
-    );
+    const message = "Download & Testing sukses guys!";
+    const folderPath = path.join(targetDir, "newman");
+    event.reply("download-complete", { message, folderPath });
   });
 });
 
