@@ -48,7 +48,6 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
-  app.dock.setIcon(path.join(__dirname, "assets", "netmonk_api_test.png"));
   createWindow();
 
   app.on("activate", () => {
@@ -85,48 +84,84 @@ ipcMain.on("download-data", async (event, { reportName }) => {
       second: "2-digit",
     })
     .replace(/\//g, "-")
-    .replace(/ /, "_")
+    .replace(/ /g, "_")
     .replace(/,/g, "");
 
   const reportFileName = `${reportName}_Report_${timeString}.html`;
 
-  const runNewmanScript = `
-    #!/bin/bash
-    set -e
+  // Cek platform OS
+  const isWindows = process.platform === "win32";
 
-    export PATH=$PATH:/usr/local/bin:/opt/homebrew/bin
-    mkdir -p "${targetDir}"
-    cd "${targetDir}"
-
-    echo "Running Newman langsung dari URL 📡..."
-    newman run "https://api.getpostman.com/collections/${COLLECTION_ID}?apikey=${API_KEY}" \\
-      --environment "https://api.getpostman.com/environments/${ENVIRONMENT_ID}?apikey=${API_KEY}" \\
-      -r htmlextra \\
-      --reporter-htmlextra-title "${reportName} Netmonk" \\
-      --reporter-htmlextra-export "${reportFileName}"
-    echo "Newman run complete 🎯"
-  `;
-
-  const newmanScriptPath = path.join(os.tmpdir(), `newman_${Date.now()}.sh`);
+  // Tentuin command untuk jalanin Newman
+  const newmanCommand = isWindows
+    ? `"${path.join(
+        process.env.APPDATA,
+        "npm",
+        "newman.cmd"
+      )}" run https://api.getpostman.com/collections/${COLLECTION_ID}?apikey=${API_KEY} --environment https://api.getpostman.com/environments/${ENVIRONMENT_ID}?apikey=${API_KEY} -r htmlextra --reporter-htmlextra-title "${reportName} Netmonk" --reporter-htmlextra-export "${path.join(
+        targetDir,
+        reportFileName
+      )}"`
+    : `
+      export PATH=$PATH:/usr/local/bin:/opt/homebrew/bin
+      mkdir -p "${targetDir}"
+      cd "${targetDir}"
+      newman run "https://api.getpostman.com/collections/${COLLECTION_ID}?apikey=${API_KEY}" \\
+        --environment "https://api.getpostman.com/environments/${ENVIRONMENT_ID}?apikey=${API_KEY}" \\
+        -r htmlextra \\
+        --reporter-htmlextra-title "${reportName} Netmonk" \\
+        --reporter-htmlextra-export "${reportFileName}"
+    `;
 
   try {
-    fs.writeFileSync(newmanScriptPath, runNewmanScript, { mode: 0o755 });
+    if (!fs.existsSync(targetDir)) {
+      fs.mkdirSync(targetDir, { recursive: true });
+    }
   } catch (err) {
-    console.error(`Error writing temp script: ${err}`);
-    event.reply("download-error", `Gagal nulis script: ${err.message}`);
+    console.error(`Error bikin folder: ${err}`);
+    event.reply("download-error", `Gagal bikin folder: ${err.message}`);
     return;
   }
 
-  exec(`bash "${newmanScriptPath}"`, (err, stdout, stderr) => {
-    fs.unlink(newmanScriptPath, () => {});
+  // Kalo Windows: langsung exec command
+  // Kalo Mac/Linux: tulis ke temp .sh file dulu
+  if (isWindows) {
+    exec(newmanCommand, (err, stdout, stderr) => {
+      if (err) {
+        console.error(`Error jalanin newman: ${stderr}`);
+        event.reply("download-error", `Gagal jalanin newman: ${stderr}`);
+        return;
+      }
 
-    console.log(`Newman success: ${stdout}`);
+      console.log(`Newman success: ${stdout}`);
+      const message = "Download & Testing sukses guys! 🚀";
+      event.reply("download-complete", { message, folderPath: targetDir });
+    });
+  } else {
+    const newmanScriptPath = path.join(os.tmpdir(), `newman_${Date.now()}.sh`);
+    try {
+      fs.writeFileSync(newmanScriptPath, newmanCommand, { mode: 0o755 });
+    } catch (err) {
+      console.error(`Error nulis temp script: ${err}`);
+      event.reply("download-error", `Gagal nulis script: ${err.message}`);
+      return;
+    }
 
-    const message = "Download & Testing sukses guys!";
-    const folderPath = path.join(targetDir);
-    event.reply("download-complete", { message, folderPath });
-  });
+    exec(`bash "${newmanScriptPath}"`, (err, stdout, stderr) => {
+      fs.unlink(newmanScriptPath, () => {}); // Bersihin file temp
+      if (err) {
+        console.error(`Error jalanin script: ${stderr}`);
+        event.reply("download-error", `Gagal jalanin newman: ${stderr}`);
+        return;
+      }
+
+      console.log(`Newman success: ${stdout}`);
+      const message = "Download & Testing sukses guys! 🚀";
+      event.reply("download-complete", { message, folderPath: targetDir });
+    });
+  }
 });
+
 
 ipcMain.on(
   "show-dialog",
