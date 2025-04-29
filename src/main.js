@@ -89,10 +89,8 @@ ipcMain.on("download-data", async (event, { reportName }) => {
 
   const reportFileName = `${reportName}_Report_${timeString}.html`;
 
-  // Cek platform OS
   const isWindows = process.platform === "win32";
 
-  // Tentuin command untuk jalanin Newman
   const newmanCommand = isWindows
     ? `"${path.join(
         process.env.APPDATA,
@@ -123,16 +121,8 @@ ipcMain.on("download-data", async (event, { reportName }) => {
     return;
   }
 
-  // Kalo Windows: langsung exec command
-  // Kalo Mac/Linux: tulis ke temp .sh file dulu
   if (isWindows) {
     exec(newmanCommand, (err, stdout, stderr) => {
-      if (err) {
-        console.error(`Error jalanin newman: ${stderr}`);
-        event.reply("download-error", `Gagal jalanin newman: ${stderr}`);
-        return;
-      }
-
       console.log(`Newman success: ${stdout}`);
       const message = "Download & Testing sukses guys! 🚀";
       event.reply("download-complete", { message, folderPath: targetDir });
@@ -148,7 +138,7 @@ ipcMain.on("download-data", async (event, { reportName }) => {
     }
 
     exec(`bash "${newmanScriptPath}"`, (err, stdout, stderr) => {
-      fs.unlink(newmanScriptPath, () => {}); // Bersihin file temp
+      fs.unlink(newmanScriptPath, () => {});  
       if (err) {
         console.error(`Error jalanin script: ${stderr}`);
         event.reply("download-error", `Gagal jalanin newman: ${stderr}`);
