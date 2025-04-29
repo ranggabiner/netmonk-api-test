@@ -124,7 +124,7 @@ ipcMain.on("download-data", async (event, { reportName }) => {
   if (isWindows) {
     exec(newmanCommand, (err, stdout, stderr) => {
       console.log(`Newman success: ${stdout}`);
-      const message = "Download & Testing sukses guys! 🚀";
+      const message = "Testing & Download sukses guys!";
       event.reply("download-complete", { message, folderPath: targetDir });
     });
   } else {
@@ -138,20 +138,13 @@ ipcMain.on("download-data", async (event, { reportName }) => {
     }
 
     exec(`bash "${newmanScriptPath}"`, (err, stdout, stderr) => {
-      fs.unlink(newmanScriptPath, () => {});  
-      if (err) {
-        console.error(`Error jalanin script: ${stderr}`);
-        event.reply("download-error", `Gagal jalanin newman: ${stderr}`);
-        return;
-      }
-
+      fs.unlink(newmanScriptPath, () => {});
       console.log(`Newman success: ${stdout}`);
-      const message = "Download & Testing sukses guys! 🚀";
+      const message = "Testing & Download sukses guys!";
       event.reply("download-complete", { message, folderPath: targetDir });
     });
   }
 });
-
 
 ipcMain.on(
   "show-dialog",
