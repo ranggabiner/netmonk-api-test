@@ -30,12 +30,12 @@ Download the latest release for your operating system:
 
 > 📦 Each package is bundled and ready to use. Ensure you're using the correct version for your OS.
 
-> 🛡️ macOS Security Notice:  
+> 🛡️ macOS Security Notice:
 > If you see a warning like “App is damaged or can’t be opened,” you may need to remove the quarantine attribute:
 
-````bash
+```bash
 xattr -d com.apple.quarantine '/Applications/Netmonk API Test.app'
-
+```
 
 ---
 
@@ -46,4 +46,4 @@ To run this app correctly (especially during development or when modifying), mak
 ```bash
 npm install -g newman
 npm install -g newman-reporter-htmlextra
-````
+```
