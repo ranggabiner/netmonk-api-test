@@ -24,11 +24,18 @@ This application serves as a GUI wrapper for [Newman](https://www.npmjs.com/pack
 Download the latest release for your operating system:
 
 - **macOS:**
-  - [v1.1](https://drive.google.com/file/d/1g_aSY5SGYPkjgZIOACK0wCCfjvlgztKt/)
+  - [v1.1](https://drive.google.com/file/d/113jv73A_6VuoudDHOEifiKKh7WZoy2TP/)
 - **Windows:**
   - [v1.1](https://drive.google.com/file/d/1g_aSY5SGYPkjgZIOACK0wCCfjvlgztKt/)
 
 > 📦 Each package is bundled and ready to use. Ensure you're using the correct version for your OS.
+
+> 🛡️ macOS Security Notice:  
+> If you see a warning like “App is damaged or can’t be opened,” you may need to remove the quarantine attribute:
+
+````bash
+xattr -d com.apple.quarantine '/Applications/Netmonk API Test.app'
+
 
 ---
 
@@ -39,4 +46,4 @@ To run this app correctly (especially during development or when modifying), mak
 ```bash
 npm install -g newman
 npm install -g newman-reporter-htmlextra
-```
+````
