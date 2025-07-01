@@ -24,9 +24,9 @@ This application serves as a GUI wrapper for [Newman](https://www.npmjs.com/pack
 Download the latest release for your operating system:
 
 - **macOS:**
-  - [v1.1](https://drive.google.com/file/d/1g_aSY5SGYPkjgZIOACK0wCCfjvlgztKt/) - Download for macOS
+  - [v1.1](https://drive.google.com/file/d/1g_aSY5SGYPkjgZIOACK0wCCfjvlgztKt/)
 - **Windows:**
-  - [v1.1](https://drive.google.com/file/d/1g_aSY5SGYPkjgZIOACK0wCCfjvlgztKt/) - Download for Windows
+  - [v1.1](https://drive.google.com/file/d/1g_aSY5SGYPkjgZIOACK0wCCfjvlgztKt/)
 
 > 📦 Each package is bundled and ready to use. Ensure you're using the correct version for your OS.
 
