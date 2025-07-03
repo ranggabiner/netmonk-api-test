@@ -10,7 +10,7 @@
     "package": "electron-builder"
   },
   "devDependencies": {
-    "electron": "^27.3.11",
+    "electron": "^15.5.7",
     "electron-builder": "^23.6.0",
     "newman-reporter-htmlextra": "^1.23.1"
   },
@@ -28,13 +28,8 @@
     ],
     "mac": {
       "identity": null,
-      "target": [
-        "dmg",
-        "zip"
-      ],
-      "extendInfo": {
-        "LSMinimumSystemVersion": "10.12.0"
-      }
+      "target": "dmg",
+      "minimumSystemVersion": "10.15"
     },
     "icon": "src/assets/netmonk_api_test"
   },
