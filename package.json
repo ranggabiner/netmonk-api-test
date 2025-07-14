@@ -1,8 +1,8 @@
 {
   "name": "postman-exporter-electron",
-  "productName": "Netmonk - API Test",
+  "productName": "Netmonk API Test",
   "author": "Rangga Biner",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Postman Exporter with Electron",
   "main": "src/main.js",
   "scripts": {
@@ -10,8 +10,8 @@
     "package": "electron-builder"
   },
   "devDependencies": {
-    "electron": "29.0.0",
-    "electron-builder": "23.6.0",
+    "electron": "^15.5.7",
+    "electron-builder": "^23.6.0",
     "newman-reporter-htmlextra": "^1.23.1"
   },
   "build": {
@@ -27,7 +27,9 @@
       }
     ],
     "mac": {
-      "identity": null
+      "identity": null,
+      "target": "dmg",
+      "minimumSystemVersion": "10.15"
     },
     "icon": "src/assets/netmonk_api_test"
   },

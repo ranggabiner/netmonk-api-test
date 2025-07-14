@@ -24,11 +24,18 @@ This application serves as a GUI wrapper for [Newman](https://www.npmjs.com/pack
 Download the latest release for your operating system:
 
 - **macOS:**
-  - [v1.1](https://drive.google.com/file/d/1g_aSY5SGYPkjgZIOACK0wCCfjvlgztKt/)
+  - [v1.1](https://drive.google.com/file/d/1IoRsz2-P8yHJ02X8KF_QiZnxCVTeR6Zh/)
 - **Windows:**
-  - [v1.1](https://drive.google.com/file/d/1g_aSY5SGYPkjgZIOACK0wCCfjvlgztKt/)
+  - [v1.1](https://drive.google.com/file/d/1donX1PQYkGa_AenlQy0sci3oACmQzPoW/)
 
 > 📦 Each package is bundled and ready to use. Ensure you're using the correct version for your OS.
+
+> 🛡️ macOS Security Notice:
+> If you see a warning like “App is damaged or can’t be opened,” you may need to remove the quarantine attribute:
+
+```bash
+xattr -d com.apple.quarantine '/Applications/Netmonk API Test.app'
+```
 
 ---
 
